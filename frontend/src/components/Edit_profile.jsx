@@ -18,11 +18,13 @@ const EditProfile = () => {
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
 
-  // Fetch user data
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/home", {
+        const response = await axios.get("https://twitter-p984.onrender.com/home", {
+          headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  },
           withCredentials: true,
         });
         setUser(response.data.user);
@@ -38,12 +40,11 @@ const EditProfile = () => {
     if (window.location.pathname === "/edit") fetchUserData();
   }, []);
 
-  // Fetch posts
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         if (!user?._id) return;
-        const response = await axios.get(`http://localhost:5000/postdata/${user._id}`, {
+        const response = await axios.get(`https://twitter-p984.onrender.com/postdata/${user._id}`, {
           withCredentials: true,
         });
 
@@ -60,8 +61,8 @@ const EditProfile = () => {
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      setProfilePic(URL.createObjectURL(file)); // for preview
-      setProfilePicFile(file); // for uploading
+      setProfilePic(URL.createObjectURL(file)); 
+      setProfilePicFile(file);
     }
   };
 
@@ -80,7 +81,8 @@ const EditProfile = () => {
     }
 
     try {
-      const response = await axios.post("http://localhost:5000/edit", formData, {
+      const response = await axios.post("https://twitter-p984.onrender.com/edit", formData, {
+        
         withCredentials: true,
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -93,7 +95,7 @@ const EditProfile = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 text-black flex flex-col items-center">
-      {/* Header */}
+
       <div className="bg-zinc-700 h-14 w-full p-3 flex items-center gap-4 sticky top-0 z-1 shadow-md">
         <FaArrowLeft
           className="text-xl text-white cursor-pointer"
@@ -105,11 +107,9 @@ const EditProfile = () => {
         </div>
       </div>
 
-      {/* Profile Edit Section */}
       <div className="bg-white shadow-lg rounded-lg p-6 mt-6 w-11/12 max-w-md text-center">
         <h1 className="text-2xl font-semibold text-gray-700 mb-4">{t("editYourProfile")}</h1>
 
-        {/* Profile Picture Upload */}
         <div className="relative w-32 h-32 mx-auto group">
           <img
             src={profilePic || "https://via.placeholder.com/150"}
@@ -124,7 +124,6 @@ const EditProfile = () => {
           </div>
         </div>
 
-        {/* Name Input */}
         <div className="mt-6 text-left">
           <label className="block text-gray-600 font-medium mb-1">{t("name")}</label>
           <input
@@ -135,7 +134,6 @@ const EditProfile = () => {
           />
         </div>
 
-        {/* Bio Input */}
         <div className="mt-4 text-left">
           <label className="block text-gray-600 font-medium mb-1">{t("bio")}</label>
           <textarea
@@ -145,7 +143,6 @@ const EditProfile = () => {
           ></textarea>
         </div>
 
-        {/* Location Input */}
         <div className="mt-4 text-left">
           <label className="block text-gray-600 font-medium mb-1">{t("location")}</label>
           <input
@@ -155,8 +152,6 @@ const EditProfile = () => {
             onChange={(e) => setLoc(e.target.value)}
           />
         </div>
-
-        {/* Website Input */}
         <div className="mt-4 text-left">
           <label className="block text-gray-600 font-medium mb-1">{t("website")}</label>
           <input
@@ -167,7 +162,6 @@ const EditProfile = () => {
           />
         </div>
 
-        {/* Submit Button */}
         <button
           className="mt-6 bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition"
           onClick={updateUser}

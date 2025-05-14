@@ -13,10 +13,16 @@ const ExploreContent = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const usersResponse = await axios.get("http://localhost:5000/users", { withCredentials: true });
+                const usersResponse = await axios.get("https://twitter-p984.onrender.com/users", {
+                    headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  }, withCredentials: true });
                 setUsers(usersResponse.data.users || []);
 
-                const followingResponse = await axios.get("http://localhost:5000/myfollowing", { withCredentials: true });
+                const followingResponse = await axios.get("https://twitter-p984.onrender.com/myfollowing", { 
+                    headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  },withCredentials: true });
                 const followingIds = new Set(followingResponse.data.following || []);
                 setFollowing(followingIds);
             } catch (error) {
@@ -37,8 +43,10 @@ const ExploreContent = () => {
 
         try {
             const isFollowing = following.has(userId);
-            const url = `http://localhost:5000/${isFollowing ? "unfollow" : "follow"}/${userId}`;
-            await axios.post(url, {}, { withCredentials: true });
+            const url = `https://twitter-p984.onrender.com/${isFollowing ? "unfollow" : "follow"}/${userId}`;
+            await axios.post(url, {}, { headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  },withCredentials: true });
 
             setFollowing((prev) => {
                 const updatedFollowing = new Set(prev);

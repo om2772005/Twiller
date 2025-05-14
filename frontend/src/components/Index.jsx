@@ -14,7 +14,10 @@ const Index = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/home", {
+        const response = await axios.get("https://twitter-p984.onrender.com/home", {
+          headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  },
           withCredentials: true,
         });
         setUser(response.data.user);
@@ -28,7 +31,7 @@ const Index = () => {
 
     const fetchPosts = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/postsindex", {
+        const response = await axios.get("https://twitter-p984.onrender.com/postsindex", {
           withCredentials: true,
         });
         setPosts(response.data.posts);
@@ -62,7 +65,6 @@ const Index = () => {
         <button onClick={() => navigate('/profile')} className="w-full text-blue-500 mt-2 hover: cursor-pointer hover:text-red-700">{t("showPosts")}</button>
       </div>
 
-      {/* Display Posts */}
       {loading ? (
         <p>Loading posts...</p>
       ) : (
@@ -82,12 +84,10 @@ const Index = () => {
 
             <p className="mb-2">{post.tweet}</p>
 
-            {/* Show Image */}
             {post.image && (
               <img src={post.image} alt="Post Image" className="rounded-lg mb-2" />
             )}
 
-            {/* Show Audio */}
             {post.audio && (
               <audio controls className="w-full mb-2">
                 <source src={post.audio} type="audio/mpeg" />
@@ -95,7 +95,6 @@ const Index = () => {
               </audio>
             )}
 
-            {/* Show Video */}
             {post.video && (
               <video controls className="w-full rounded-lg">
                 <source src={post.video} type="video/mp4" />

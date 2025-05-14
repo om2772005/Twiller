@@ -1,4 +1,3 @@
-// src/components/GoogleModal.jsx
 import { useState } from "react";
 
 const GoogleModal = ({ email, onSubmit, onClose }) => {

@@ -20,8 +20,6 @@ const SECRET = process.env.JWT_SECRET;
 const http = require("http");
 const { Server } = require("socket.io");
 const admin = require('firebase-admin');
-
-// Initialize Firebase Admin with your service account key
 const serviceAccount = require('../key.json');
 
 admin.initializeApp({
@@ -46,8 +44,6 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
-
-// Socket.IO connection
 io.on("connection", (socket) => {
   setTimeout(() => {
     socket.emit('newNotification', {
@@ -59,14 +55,12 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
   });
 });
-// Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,
   api_secret: process.env.API_SECRET,
 });
 
-// Set up multer to handle in-memory file uploads
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 app.post('/sign', async (req, res) => {
@@ -89,26 +83,24 @@ app.post('/sign', async (req, res) => {
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "Lax",
+      secure: true,
+      sameSite: "None",
       path: '/'
     });
 
 
-    return res.status(201).json({ redirectTo: "http://localhost:5173/home" });
+    return res.status(201).json({ redirectTo: "/home" });
 
   } catch (error) {
     console.error("Signup Error:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 });
-// Backend (Express.js)
 app.post('/check-user', async (req, res) => {
   
   const { email } = req.body;
 
   try {
-    // Check if the email exists in the database
     const users = await user.findOne({ email });
 
     if (users) {
@@ -116,15 +108,14 @@ app.post('/check-user', async (req, res) => {
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "Lax",
+      secure: true,
+      sameSite: "None",
       path: '/'
     });
       res.json({ exists: true, token});
 
       
     } else {
-      // If user does not exist
       res.json({ exists: false });
     }
   } catch (error) {
@@ -184,20 +175,19 @@ app.post('/login', async (req, res) => {
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "Lax",
+      secure: true,
+      sameSite: "None",
       path: '/'
     });
 
 
-    return res.json({ message: "Login successful", token, redirectTo: "http://localhost:5173/home" });
+    return res.json({ message: "Login successful", token, redirectTo: "/home" });
 
   } catch (error) {
     console.error("Login Error:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 });
-// POST /google-login
 app.post('/google-login', async (req, res) => {
     const { token, email, name } = req.body;
 
@@ -216,8 +206,6 @@ app.post('/google-login', async (req, res) => {
         res.status(401).json({ message: 'Invalid Google token' });
     }
 });
-
-// Google Register
 app.post('/google-register', async (req, res) => {
     const { email, fullName, username, password } = req.body;
 
@@ -278,7 +266,7 @@ app.get("/home",requireAuth, async (req, res) => {
 });
 app.post("/edit", upload.single("image"), async function (req, res) {
   try {
-    const token = req.cookies.token;
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
     if (!token) return res.status(401).json({ error: "Token missing" });
 
     const decoded = jwt.verify(token, SECRET);
@@ -302,8 +290,6 @@ app.post("/edit", upload.single("image"), async function (req, res) {
       const profileimageUrl = await uploadToCloudinary(req.file.buffer, "posts");
       updates.profilePic = profileimageUrl;
     }
-
-    // Remove empty or undefined fields
     Object.keys(updates).forEach((key) => {
       if (updates[key] === "" || updates[key] === undefined) {
         delete updates[key];
@@ -322,7 +308,7 @@ app.post("/edit", upload.single("image"), async function (req, res) {
 
     return res.status(201).json({ redirectTo: "http://localhost:5173/profile" });
   } catch (error) {
-    console.error("🔥 Error updating user:", error); // 👈 Error log
+    console.error("Error updating user:", error);
     res.status(500).json({
       error: "Error updating user",
       details: error.message,
@@ -333,9 +319,9 @@ app.post("/edit", upload.single("image"), async function (req, res) {
 app.post("/logout", (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
-    secure: false,     // Set to true in production (HTTPS)
-    sameSite: "Lax",
-    path: '/',         // ✅ Ensure path matches cookie set path
+    secure: false,   
+    sameSite: "None",
+    path: '/', 
   });
 
   res.setHeader('Cache-Control', 'no-store');
@@ -346,7 +332,7 @@ app.post("/logout", (req, res) => {
 app.get('/users', async function (req, res) {
   try {
 
-    const token = req.cookies.token;
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
     if (!token) {
       return res.status(401).json({ error: "Unauthorized: No token provided" });
     }
@@ -359,8 +345,6 @@ app.get('/users', async function (req, res) {
     if (!decoded.id) {
       return res.status(400).json({ error: "Invalid token: No user ID found" });
     }
-
-    // Fetch all users except the logged-in user
     const users = await user.find({ _id: { $ne: new ObjectId(decoded.id) } });
 
     return res.json({ users });
@@ -372,7 +356,7 @@ app.get('/users', async function (req, res) {
 
 app.get("/myfollowing", async (req, res) => {
   try {
-    const token = req.cookies.token;
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
     if (!token) {
       return res.status(401).json({ error: "Unauthorized: No token provided" });
     }
@@ -390,11 +374,9 @@ app.get("/myfollowing", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-// Follow a user
 app.post("/follow/:id", async (req, res) => {
   try {
-    const token = req.cookies.token;
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
     if (!token) {
       return res.status(401).json({ error: "Unauthorized: No token provided" });
     }
@@ -421,10 +403,9 @@ app.post("/follow/:id", async (req, res) => {
   }
 });
 
-// Unfollow a user
 app.post("/unfollow/:id", async (req, res) => {
   try {
-    const token = req.cookies.token;
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
     if (!token) {
       return res.status(401).json({ error: "Unauthorized: No token provided" });
     }
@@ -453,7 +434,7 @@ app.post("/unfollow/:id", async (req, res) => {
 
 app.get("/profile/:id", async (req, res) => {
   try {
-    const User = await user.findById(req.params.id).select("-password"); // Exclude password field
+    const User = await user.findById(req.params.id).select("-password"); 
     if (!User) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -499,22 +480,16 @@ app.post('/post', requireAuth, upload.fields([{ name: 'image' }, { name: 'audio'
     }
 
     const now = moment().tz("Asia/Kolkata");
-
-    // ========== AUDIO VALIDATION ========== //
     const audioFile = req.files?.audio?.[0];
 
     if (audioFile) {
-      // ✅ 1. OTP verification
       if (!otp || otp !== currentUser.otp?.code || currentUser.otp.expiresAt < new Date()) {
         return res.status(401).json({ error: "Invalid or expired OTP" });
       }
-      // ✅ 2. Time restriction (2 PM - 7 PM IST)
       const hour = now.hour();
       if (hour < 1 || hour >= 19) {
         return res.status(403).json({ error: "Audio upload allowed only between 2 PM - 7 PM IST" });
       }
-
-      // ✅ 3. File size check (100MB = 100 * 1024 * 1024 bytes)
       if (audioFile.size > 100 * 1024 * 1024) {
         return res.status(413).json({ error: "Audio file exceeds 100MB limit" });
       }
@@ -523,8 +498,6 @@ app.post('/post', requireAuth, upload.fields([{ name: 'image' }, { name: 'audio'
 
       audioUrl = await uploadToCloudinary(audioFile.buffer, 'audio');
     }
-
-    // Upload image if exists
     if (req.files?.image?.[0]?.buffer) {
       imageUrl = await uploadToCloudinary(req.files.image[0].buffer, 'posts');
     }
@@ -533,7 +506,6 @@ app.post('/post', requireAuth, upload.fields([{ name: 'image' }, { name: 'audio'
       videoUrl = await uploadToCloudinary(videoFile.buffer, 'videos');
     }
 
-    // Don't allow completely empty posts
     if (!tweet?.trim() && !imageUrl && !audioUrl) {
       return res.status(400).json({ error: "Post must include text, image, or audio" });
     }
@@ -543,23 +515,26 @@ app.post('/post', requireAuth, upload.fields([{ name: 'image' }, { name: 'audio'
       createdAt: { $gte: now.startOf('day').toDate() }
     });
 
-    if (currentUser.following.length < 0) {
-      const hour = now.hour();
-      const minute = now.minute();
-      if (!(hour === 10 && minute >= 0 && minute <= 30)) {
-        return res.status(403).json({ error: "You can only post between 10:00 AM - 10:30 AM IST" });
-      }
-    } else if (currentUser.following.length <= 2 && postCountToday >= 2) {
-      return res.status(403).json({ error: "You can only post 2 times a day" });
-    }    if (currentUser.following.length < 0) {
-      const hour = now.hour();
-      const minute = now.minute();
-      if (!(hour === 10 && minute >= 0 && minute <= 30)) {
-        return res.status(403).json({ error: "You can only post between 10:00 AM - 10:30 AM IST" });
-      }
-    } else if (currentUser.following.length <= 2 && postCountToday >= 2) {
-      return res.status(403).json({ error: "You can only post 2 times a day" });
-    }
+const followingCount = currentUser.following.length;
+if (followingCount === 0) {
+  if (!(hour === 10 && minute >= 0 && minute <= 30)) {
+    return res.status(403).json({
+      error: "You can only post between 10:00 AM - 10:30 AM IST if you don't follow anyone",
+    });
+  }
+  if (postCountToday >= 1) {
+    return res.status(403).json({
+      error: "You can only post once a day if you don't follow anyone",
+    });
+  }
+}
+else if (followingCount <= 2) {
+  if (postCountToday >= 2) {
+    return res.status(403).json({
+      error: "You can only post 2 times a day if you follow 1 or 2 users",
+    });
+  }
+}
 
     const newPost = new Post({
       userid: req.user.id,
@@ -609,7 +584,7 @@ app.get('/postdata/:id', async (req, res) => {
 app.get('/postsindex', async (req, res) => {
   try {
     const posts = await Post.find()
-      .populate('userid', 'username profilePic')  // populate from 'user' model
+      .populate('userid', 'username profilePic') 
       .sort({ createdAt: -1 });
 
     const formattedPosts = posts.map(post => ({
@@ -623,7 +598,7 @@ app.get('/postsindex', async (req, res) => {
         _id: post.userid._id,
         username: post.userid.username,
         profilePic: post.userid.profilePic,
-      } : null, // safer if somehow no user populated
+      } : null,
     }));
 
 
@@ -664,7 +639,7 @@ app.get('/postdata/:id', async (req, res) => {
 app.get('/postsindex', async (req, res) => {
   try {
     const posts = await Post.find()
-      .populate('userid', 'username profilePic')  // populate from 'user' model
+      .populate('userid', 'username profilePic') 
       .sort({ createdAt: -1 });
 
     const formattedPosts = posts.map(post => ({
@@ -678,7 +653,7 @@ app.get('/postsindex', async (req, res) => {
         _id: post.userid._id,
         username: post.userid.username,
         profilePic: post.userid.profilePic,
-      } : null, // safer if somehow no user populated
+      } : null,
     }));
 
 
@@ -706,12 +681,10 @@ app.post('/request-audio-otp', requireAuth, async (req, res) => {
     if (!userDoc) return res.status(404).json({ error: "User not found" });
 
     const otpCode = crypto.randomInt(100000, 999999).toString();
-    const otpExpiry = Date.now() + 5 * 60 * 1000; // 5 mins
+    const otpExpiry = Date.now() + 5 * 60 * 1000; 
 
     userDoc.otp = { code: otpCode, expiresAt: new Date(otpExpiry) };
     await userDoc.save();
-
-    // Set up nodemailer (example using Gmail)
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -735,23 +708,19 @@ app.post('/request-audio-otp', requireAuth, async (req, res) => {
 });
 
 app.get('/verify', async (req, res) => {
-  const token = req.query.token;  // You can pass the token as a query parameter
+  const token = req.cookies.token || req.headers.authorization?.split(" ")[1]; 
   if (!token) {
     return res.status(400).json({ message: 'Token is required' });
   }
 
   try {
-    // Verify the token using JWT
     const decoded = jwt.verify(token, config.JWT_SECRET);
     const userEmail = decoded.email;
 
-    // Check if the email exists in the database
     const user = await user.findOne({ email: userEmail });
     if (user) {
-      // Token is valid and email exists
       return res.status(200).json({ message: 'Token verified', redirect: '/home' });
     } else {
-      // Token is valid but email doesn't exist
       return res.status(400).json({ message: 'User not found', redirect: '/sign' });
     }
   } catch (error) {
@@ -788,16 +757,12 @@ app.post("/subscribe", async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const { email } = decoded;
     const { planId } = req.body;
-
-    // Validate selected plan
     if (!plans[planId]) {
       return res.status(400).json({ message: "Invalid plan selected" });
     }
 
     const users = await user.findOne({ email });
     if (!users) return res.status(404).json({ message: "User not found" });
-
-    // If the selected plan is free, activate it directly
     if (planId === "free") {
       users.subscriptionPlan = "free";
       await users.save();
@@ -811,15 +776,11 @@ app.post("/subscribe", async (req, res) => {
 
       return res.status(200).json({ message: "Free plan activated" });
     }
-
-    // If it's a paid plan, create a Razorpay order
     const order = await razorpay.orders.create({
       amount: plans[planId].amount,
       currency: plans[planId].currency,
       receipt: `receipt_${Date.now()}`,
     });
-
-    // Send an invoice email for the paid plan
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
@@ -863,22 +824,16 @@ app.post("/payment-success", async (req, res) => {
   if (!isValid) {
     return res.status(400).json({ message: "Invalid payment signature" });
   }
-
-  // After successful payment, update the user's subscription
   try {
-    const users = await user.findOne({ email: req.user.email });  // Assuming you have user data in req.user
+    const users = await user.findOne({ email: req.user.email });
     if (!users) return res.status(404).json({ message: "User not found" });
 
     const { planId } = req.body;
     if (!plans[planId]) {
       return res.status(400).json({ message: "Invalid plan selected" });
     }
-
-    // Update user's subscription plan after payment
     users.subscriptionPlan = planId;
     await users.save();
-
-    // Send an invoice email after payment verification
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: users.email,
@@ -898,10 +853,10 @@ app.post("/payment-success", async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
-const otpStore = {}; // { email_or_mobile: { otp, expiresAt } }
+const otpStore = {};
 
 function generateOTP() {
-  return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 function isOTPValid(stored, input) {
@@ -956,8 +911,6 @@ app.post("/send-email-otp", async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to send OTP." });
   }
 });
-
-// ✅ Verify Email OTP
 app.post("/verify-email-otp", (req, res) => {
   const { email, otp } = req.body;
   const record = otpStore[email];
@@ -967,77 +920,6 @@ app.post("/verify-email-otp", (req, res) => {
     return res.json({ success: true, message: "Email verified." });
   }
   res.status(400).json({ success: false, message: "Invalid or expired OTP." });
-});
-const axios = require('axios');
-
-app.post("/send-sms-otp", async (req, res) => {
-  const { phoneNumber } = req.body;
-
-  // ✅ Validate phone number
-  if (!phoneNumber || phoneNumber.length < 10) {
-    return res.status(400).json({ message: "Invalid phone number." });
-  }
-
-  try {
-    const options = {
-      method: 'POST',
-      url: 'https://control.msg91.com/api/v5/otp',
-      params: {
-        otp_expiry: '5',
-        mobile: phoneNumber,
-        authkey: '451272A6qisxpvu6822c18aP1',        // ⚠️ Replace with your MSG91 Auth Key
-        realTimeResponse: '1'
-      },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    };
-
-    const { data } = await axios.request(options);
-    console.log("MSG91 Response:", data);
-
-    if (data.type === 'success') {
-      return res.status(200).json({
-        message: 'OTP sent successfully',
-        request_id: data.request_id, // Save this to verify OTP
-      });
-    } else {
-      res.status(500).json({ message: "Failed to send OTP", data });
-    }
-
-  } catch (error) {
-    console.error("OTP error:", error.response?.data || error.message);
-    res.status(500).json({ message: "Server error", error: error.response?.data || error.message });
-  }
-});
-
-// Verify OTP (this is for demonstration, you can implement a full flow)
-app.post("/verify-sms-otp", async (req, res) => {
-  const { otp, requestId } = req.body;
-
-  if (!otp || !requestId) {
-    return res.status(400).json({ message: "Missing OTP or requestId" });
-  }
-
-  try {
-    const response = await axios.get('https://control.msg91.com/api/v5/otp/verify', {
-      params: {
-        authkey: 'Y451272A6qisxpvu6822c18aP1', // replace with your actual key
-        otp: otp,
-        request_id: requestId,
-      }
-    });
-
-    if (response.data.type === "success") {
-      return res.status(200).json({ message: "OTP verified successfully" });
-    } else {
-      return res.status(400).json({ message: "OTP verification failed", data: response.data });
-    }
-
-  } catch (error) {
-    console.error("Verification Error:", error.response?.data || error.message);
-    return res.status(500).json({ message: "Server error during OTP verification" });
-  }
 });
 
 

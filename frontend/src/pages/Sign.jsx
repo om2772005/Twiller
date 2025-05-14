@@ -5,6 +5,7 @@ import OTPModal from "../components/OTPMODAL";
 import GoogleModal from "../components/Google";
 import { auth, provider, signInWithPopup } from "../firebase"
 import { useNavigate } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
 const Sign = () => {
   const [username, setUsername] = useState("");
@@ -26,8 +27,7 @@ const Sign = () => {
     const user = result.user;
     setGoogleEmail(user.email);
 
-    // Check if the user already exists in the database
-    const checkUserRes = await fetch("http://localhost:5000/check-user", {
+    const checkUserRes = await fetch("https://twitter-p984.onrender.com/check-user", {
       method: "POST",
       headers: { "Content-Type": "application/json" ,
       },
@@ -38,13 +38,11 @@ const Sign = () => {
     const checkUserData = await checkUserRes.json();
 
     if (checkUserData.exists) {
-      // If user exists, log them in
       setPopupMessage("Login successful!");
       setPopupVisible(true);
       localStorage.setItem('token', checkUserData.token);
       navigate('/home');
     } else {
-      // If user doesn't exist, show the Google registration modal
       setGoogleModalOpen(true);
     }
   } catch (error) {
@@ -56,7 +54,7 @@ const Sign = () => {
 
   const handleGoogleFormSubmit = async ({ name, username, password, email }) => {
     try {
-      const res = await fetch("http://localhost:5000/sign", {
+      const res = await fetch("https://twitter-p984.onrender.com/sign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, username, email, password }),
@@ -86,7 +84,7 @@ const Sign = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const otpRes = await fetch("http://localhost:5000/sign-otp", {
+      const otpRes = await fetch("https://twitter-p984.onrender.com/sign-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, reason: "sign-up" }),
@@ -106,7 +104,7 @@ const Sign = () => {
 
   const handleVerifyOTP = async (enteredOtp) => {
     try {
-      const verifyRes = await fetch("http://localhost:5000/verify-email-otp", {
+      const verifyRes = await fetch("https://twitter-p984.onrender.com/verify-email-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp: enteredOtp }),
@@ -119,7 +117,7 @@ const Sign = () => {
         return;
       }
 
-      const response = await fetch("http://localhost:5000/sign", {
+      const response = await fetch("https://twitter-p984.onrender.com/sign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, username, email, password }),
@@ -215,9 +213,9 @@ const Sign = () => {
 
           <p className="text-gray-500 text-sm mt-4">
             Already have an account?{" "}
-            <a href="/login" className="text-blue-500 font-medium hover:underline">
+            <Link to="/login" className="text-blue-500 font-medium hover:underline">
               Log in
-            </a>
+            </Link>
           </p>
         </div>
       </div>

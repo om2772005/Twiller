@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Change useHistory to useNavigate
+import { useNavigate } from 'react-router-dom'; 
 
 const VerifyPage = () => {
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     const verifyToken = async () => {
@@ -16,15 +16,15 @@ const VerifyPage = () => {
       try {
         const response = await axios.get(`/api/verify?token=${token}`);
         const { redirect } = response.data;
-        navigate(redirect); // Use navigate to redirect to /home or /sign
+        navigate(redirect); 
       } catch (error) {
         console.error('Verification failed:', error);
-        navigate('/sign'); // Redirect to /sign in case of any error
+        navigate('/sign');
       }
     };
 
     verifyToken();
-  }, [navigate]); // Make sure navigate is included in the dependencies
+  }, [navigate]); 
 
   return <div>Verifying...</div>;
 };

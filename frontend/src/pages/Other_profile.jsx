@@ -25,7 +25,7 @@ const Other_profile = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/profile/${id}`, { withCredentials: true });
+        const response = await axios.get(`https://twitter-p984.onrender.com/profile/${id}`, { withCredentials: true });
         setUser(response.data);
       } catch (err) {
         console.error("Error fetching profile", err);
@@ -41,7 +41,7 @@ const Other_profile = () => {
     const fetchPosts = async () => {
       try {
         if (!user?._id) return;
-        const response = await axios.get(`http://localhost:5000/postdata/${user._id}`, { withCredentials: true });
+        const response = await axios.get(`https://twitter-p984.onrender.com/postdata/${user._id}`, { withCredentials: true });
         setPosts(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Error fetching posts", err);
@@ -68,10 +68,8 @@ const Other_profile = () => {
 
   return (
     <div className="relative w-screen h-screen overflow-x-hidden">
-      {/* Blur Overlay */}
       {isBlurred && <div className="fixed inset-0 bg-black/40 backdrop-blur-lg z-20" />}
 
-      {/* Mobile Navbar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between bg-white px-4 py-3 shadow-md">
         <div className="flex items-center space-x-2 font-bold text-xl">
           <img src={twitter} alt="logo" className="w-8 h-8" />
@@ -81,8 +79,6 @@ const Other_profile = () => {
           ☰
         </button>
       </div>
-
-      {/* Mobile Sidebar Drawer */}
       {isSidebarOpen && (
         <div className="fixed inset-0 z-40 flex lg:hidden">
           <div className="bg-white w-68 h-screen shadow-lg p-4 overflow-y-auto overflow-x-hidden">
@@ -95,14 +91,10 @@ const Other_profile = () => {
         </div>
       )}
 
-      {/* Page Layout */}
       <div className={`flex flex-col lg:flex-row lg:px-45 transition-all duration-300 ${isBlurred ? "blur-md pointer-events-none" : ""}`}>
-        {/* Sidebar (Desktop) */}
         <div className="hidden lg:block w-63 sticky top-0 h-screen">
           <Sidebar setBlur={setIsBlurred} />
         </div>
-
-        {/* Main Content */}
         <div className="flex-1 min-h-screen mt-[80px] lg:mt-0 pl-1 pr-4">
           <div className="bg-white text-black">
             <div className="bg-zinc-700 h-12 p-2 flex items-center gap-4 sticky top-0 z-1">
@@ -188,14 +180,12 @@ const Other_profile = () => {
           </div>
         </div>
 
-        {/* Divider and Side Content */}
         <div className="hidden lg:block w-[1px] bg-gray-300 h-full"></div>
         <div className="hidden lg:block w-78 sticky top-0 h-screen">
           <Content setBlur={setIsBlurred} />
         </div>
       </div>
 
-      {/* Post Modal */}
       <PostModal isOpen={isBlurred} onClose={() => setIsBlurred(false)} />
     </div>
   );

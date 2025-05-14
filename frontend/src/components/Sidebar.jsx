@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import OTPModal from "./OTPModal"; // Import OTP Modal
+import OTPModal from "./OTPModal"; 
 
 const Sidebar = ({ setBlur }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,7 +29,7 @@ const Sidebar = ({ setBlur }) => {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:5000/logout", {
+      await fetch("https://twitter-p984.onrender.com/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -42,7 +42,9 @@ const Sidebar = ({ setBlur }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/home", {
+        const response = await axios.get("https://twitter-p984.onrender.com/home", {headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  },
           withCredentials: true,
         });
         setUser(response.data.user);
@@ -63,7 +65,6 @@ const Sidebar = ({ setBlur }) => {
     const lang = e.target.value;
     const token = localStorage.getItem("token");
 
-    // If selected language is English, change directly
     if (lang === "en") {
       i18n.changeLanguage(lang);
       return;
@@ -73,14 +74,12 @@ const Sidebar = ({ setBlur }) => {
       const email = user?.email;
       if (!email) return alert("Email not found!");
 
-      // Send OTP to email
       await axios.post(
-        "http://localhost:5000/send-email-otp",
+        "https://twitter-p984.onrender.com/send-email-otp",
         { reason: "language-change" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Open OTP modal
       setPendingLang(lang);
       setOtpModalOpen(true);
     } catch (err) {
@@ -91,7 +90,7 @@ const Sidebar = ({ setBlur }) => {
 
   const handleOTPVerify = async (enteredOtp) => {
     try {
-      const res = await axios.post("http://localhost:5000/verify-email-otp", {
+      const res = await axios.post("https://twitter-p984.onrender.com/verify-email-otp", {
         email: user?.email,
         otp: enteredOtp,
       });
@@ -144,7 +143,6 @@ const Sidebar = ({ setBlur }) => {
           </Link>
         </ul>
 
-        {/* Tweet Button */}
         <div className="mt-auto">
           <button
             onClick={() => setBlur(true)}
@@ -155,7 +153,6 @@ const Sidebar = ({ setBlur }) => {
           </button>
         </div>
 
-        {/* Subscribe Button */}
         <div className="mt-3">
           <button
             onClick={() => navigate("/subscribe")}
@@ -165,7 +162,6 @@ const Sidebar = ({ setBlur }) => {
           </button>
         </div>
 
-        {/* Language Selector */}
         <div className="mt-6">
           <label htmlFor="language" className="text-sm font-semibold text-gray-700 mb-1 block">
             {t("changeLanguage")} 🌐

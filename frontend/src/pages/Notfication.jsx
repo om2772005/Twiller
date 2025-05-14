@@ -7,7 +7,6 @@ function Notifications() {
   useEffect(() => {
     if (!socket) return;
 
-    // Ask for permission when component mounts
     if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
       Notification.requestPermission();
     }
@@ -22,7 +21,7 @@ function Notifications() {
           body: message,
         });
       } else {
-  toast(message); // fallback
+  toast(message); 
       }
     });
 

@@ -9,8 +9,8 @@ const PostModal = ({ isOpen, onClose }) => {
   const [tweet, setTweet] = useState("");
   const [user, setUser] = useState(null);
   const [image, setImage] = useState(null);
-  const [video, setVideo] = useState(null); // Video state
-  const [videoPreview, setVideoPreview] = useState(null); // Video preview state
+  const [video, setVideo] = useState(null); 
+  const [videoPreview, setVideoPreview] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isPosting, setIsPosting] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
@@ -23,7 +23,9 @@ const PostModal = ({ isOpen, onClose }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/home", {
+        const response = await axios.get("https://twitter-p984.onrender.com/home", {headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  },
           withCredentials: true,
         });
         setUser(response.data.user);
@@ -54,7 +56,7 @@ const PostModal = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleVideoChange = (e) => { // New function to handle video change
+  const handleVideoChange = (e) => { 
     const file = e.target.files[0];
     if (file) {
       setVideo(file);
@@ -98,7 +100,7 @@ const PostModal = ({ isOpen, onClose }) => {
 
   const handleOtpRequest = async () => {
     try {
-      await axios.post("http://localhost:5000/request-audio-otp", {}, { withCredentials: true });
+      await axios.post("https://twitter-p984.onrender.com/request-audio-otp", {}, { withCredentials: true });
       setOtpSent(true);
       alert("OTP sent to your email!");
     } catch (error) {
@@ -108,10 +110,8 @@ const PostModal = ({ isOpen, onClose }) => {
   };
 
   const handlePost = async () => {
-    // Check if there is content (tweet, image, video, or audio)
     if (!tweet.trim() && !image && !video && !audioBlob) return;
 
-    // If audio is present, check if OTP is sent
     if (audioBlob && !otpSent) {
       alert("Please request an OTP before posting an audio!");
       return;
@@ -122,7 +122,7 @@ const PostModal = ({ isOpen, onClose }) => {
     if (image) {
       formData.append("image", image);
     }
-    if (video) { // Add video to FormData
+    if (video) { 
       formData.append("video", video);
     }
     if (audioBlob) {
@@ -135,7 +135,7 @@ const PostModal = ({ isOpen, onClose }) => {
     setIsPosting(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/post", formData, {
+      const response = await axios.post("https://twitter-p984.onrender.com/post", formData, {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
@@ -143,11 +143,11 @@ const PostModal = ({ isOpen, onClose }) => {
       onClose();
       setTweet("");
       setImage(null);
-      setVideo(null); // Clear video
+      setVideo(null); 
       setImagePreview(null);
-      setVideoPreview(null); // Clear video preview
+      setVideoPreview(null); 
       setAudioBlob(null);
-      setOtp("");  // Clear OTP after successful post
+      setOtp(""); 
       setOtpSent(false);
     } catch (error) {
       console.error("Error posting tweet:", error);

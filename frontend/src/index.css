@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* Blur Effect */
 .blur-overlay {
     position: fixed;
     top: 0;

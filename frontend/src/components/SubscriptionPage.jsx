@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 const plans = [
   { id: "free", name: "Free Plan", price: 0, tweets: 1, color: "#ccc", badge: "FREE" },
-  { id: "bronze", name: "Bronze Plan", price: 100, tweets: 3, color: "#cd7f32", badge: "🥉 Bronze" }, // Added Bronze Plan
+  { id: "bronze", name: "Bronze Plan", price: 100, tweets: 3, color: "#cd7f32", badge: "🥉 Bronze" }, 
   { id: "silver", name: "Silver Plan", price: 300, tweets: 5, color: "#C0C0C0", badge: "🥈 Silver" },
   { id: "gold", name: "Gold Plan", price: 1000, tweets: "Unlimited", color: "#FFD700", badge: "🥇 Gold" },
 ];
@@ -14,14 +14,12 @@ const SubscriptionPage = ({ setBlur }) => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const {t} = useTranslation()
-
-  // Fetch email from the token in localStorage
   useEffect(() => {
-    const token = localStorage.getItem("token"); // Get the token from localStorage
+    const token = localStorage.getItem("token");
     if (token) {
       try {
-        const payload = JSON.parse(atob(token.split(".")[1])); // Decode the JWT payload
-        setEmail(payload.email); // Extract email from the payload
+        const payload = JSON.parse(atob(token.split(".")[1])); 
+        setEmail(payload.email); 
       } catch (err) {
         console.error("Invalid token", err);
       }
@@ -50,7 +48,7 @@ const SubscriptionPage = ({ setBlur }) => {
   
     const token = localStorage.getItem("token");
     try {
-      const { data } = await axios.post("http://localhost:5000/subscribe",
+      const { data } = await axios.post("https://twitter-p984.onrender.com/subscribe",
         { planId: selectedPlan.id },
         {
           headers: {
@@ -59,20 +57,15 @@ const SubscriptionPage = ({ setBlur }) => {
         }
       );
   
-      // Handle free plan directly
       if (selectedPlan.id === "free") {
         alert("Free Plan Activated! Check your email.");
         return;
       }
-  
-      // Load Razorpay script
       const res = await loadRazorpay("https://checkout.razorpay.com/v1/checkout.js");
       if (!res) {
         alert("Failed to load Razorpay.");
         return;
       }
-  
-      // Configure Razorpay options
       const options = {
         key: "rzp_test_396l9Qf6gpYOCO",
         amount: data.amount,
@@ -90,7 +83,7 @@ const SubscriptionPage = ({ setBlur }) => {
           try {
             const { payment_id, order_id, signature } = response;
   
-            await axios.post("http://localhost:5000/payment-success", {
+            await axios.post("https://twitter-p984.onrender.com/payment-success", {
               paymentId: payment_id,
               orderId: order_id,
               signature: signature,
@@ -108,8 +101,7 @@ const SubscriptionPage = ({ setBlur }) => {
           }
         },
       };
-  
-      // 🔥 Actually open Razorpay modal
+
       const rzp = new window.Razorpay(options);
       rzp.open();
   

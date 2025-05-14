@@ -1,8 +1,7 @@
-// src/components/NotificationListener.jsx
 import { useEffect } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:5000");
+const socket = io("https://twitter-p984.onrender.com");
 
 const Not = () => {
   useEffect(() => {

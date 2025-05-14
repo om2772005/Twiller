@@ -10,17 +10,19 @@ import moment from "moment";
 const Profiledisplay = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [posts, setPosts] = useState([]); // Ensuring it's always an array
-  const [loading, setLoading] = useState(true); // Loading state
-  const videoRef = useRef(null); // Reference to video element
-  const lastTap = useRef(0); // For detecting double tap
-  const swipeStartX = useRef(0); // For detecting swipe
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const videoRef = useRef(null); 
+  const lastTap = useRef(0); 
+  const swipeStartX = useRef(0);
   const {t}  = useTranslation()
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/home", {
+        const response = await axios.get("https://twitter-p984.onrender.com/home", {headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  },
           withCredentials: true,
         });
         console.log("User API response:", response.data);
@@ -39,7 +41,7 @@ const Profiledisplay = () => {
         if (!user?._id) return;
 
         console.log("Fetching posts for user ID:", user._id);
-        const response = await axios.get(`http://localhost:5000/postdata/${user._id}`, {
+        const response = await axios.get(`https://twitter-p984.onrender.com/postdata/${user._id}`, {
           withCredentials: true,
         });
 
@@ -52,16 +54,15 @@ const Profiledisplay = () => {
         setPosts(response.data);
       } catch (error) {
         console.error("Error fetching posts:", error);
-        setPosts([]); // Ensuring posts is always an array
+        setPosts([]); 
       } finally {
-        setLoading(false); // Stop loading
+        setLoading(false);
       }
     };
 
     fetchPosts();
   }, [user]);
 
-  // Handle play/pause toggle
   const handleVideoClick = () => {
     const videoElement = videoRef.current;
     if (videoElement.paused) {
@@ -71,20 +72,16 @@ const Profiledisplay = () => {
     }
   };
 
-  // Handle double tap to skip 10 seconds forward or backward
   const handleDoubleTap = (event) => {
     const currentTime = Date.now();
     const videoElement = videoRef.current;
     const videoWidth = videoElement.clientWidth;
-    const tapX = event.clientX; // X-coordinate of the tap
+    const tapX = event.clientX; 
 
     if (currentTime - lastTap.current < 300) {
-      // Double tap detected
       if (tapX > videoWidth / 2) {
-        // Double tap on the right side: Skip forward 10 seconds
         videoElement.currentTime += 10;
       } else {
-        // Double tap on the left side: Skip backward 10 seconds
         videoElement.currentTime -= 10;
       }
     } else {
@@ -94,7 +91,6 @@ const Profiledisplay = () => {
 
   return (
     <div className="min-h-screen bg-white text-black">
-      {/* Top Navigation Bar */}
       <div className="bg-zinc-700 h-12 p-2 flex items-center gap-4 sticky top-0 z-1">
         <FaArrowLeft className="text-xl text-white cursor-pointer" onClick={() => navigate(-1)} />
         <div className="flex flex-col">
@@ -102,8 +98,6 @@ const Profiledisplay = () => {
           <p className="text-sm text-gray-400">{posts.length} {t("posts")}</p>
         </div>
       </div>
-
-      {/* Profile Header */}
       <div className="h-48 bg-gray-300"></div>
       <div className="relative px-6">
         <div className="absolute -top-16 left-6">
@@ -139,13 +133,9 @@ const Profiledisplay = () => {
           </div>
         </div>
       </div>
-
-      {/* Tabs */}
       <div className="mt-6 border-b flex space-x-6 text-gray-600">
         <span className="font-bold border-b-2 border-black pb-2">Posts</span>
       </div>
-
-      {/* Posts Section */}
       <div className="p-4">
         {loading ? (
           <p className="text-center text-gray-500">{t("loadingPosts")}</p>
@@ -170,7 +160,7 @@ const Profiledisplay = () => {
                   controls
                   className="mt-2 w-full rounded-lg"
                   onClick={handleVideoClick}
-                  onDoubleClick={handleDoubleTap} // Double tap gesture
+                  onDoubleClick={handleDoubleTap} 
                 >
                   <source src={post.video} type="video/mp4" />
                   Your browser does not support the video element.
